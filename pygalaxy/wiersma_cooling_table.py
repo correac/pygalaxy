@@ -51,7 +51,7 @@ def read_wiersma_cooling_table(filename):
         data['Solar_mass_fractions'] = hf["/Header/Abundances/Solar_mass_fractions"][:]
     return data
 
-def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0.752, He=0.248, metallicity=0.01)
+def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0.752, He=0.248, metallicity=0.01):
     """This routine computes net cooling for a given metallicity (solar relative abundances).
         
     It calculates the net cooling rate (Lambda/n_H^2 [erg s^-1 cm^3]) given an array of redshifts, densities,
@@ -63,50 +63,50 @@ def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0
     Parameters
     ----------
     redshift: float / array
-        The redshift (for collisional ionization, enter a dummy value)
-
+    The redshift (for collisional ionization, enter a dummy value)
+    
     density : float / array
-        The hydrogen number density (n_H [cm^-3])
-        
+    The hydrogen number density (n_H [cm^-3])
+    
     temperature : float / array
-        The temperature (T [K])
-        
+    The temperature (T [K])
+    
     H/He : float
-        Abundance of element H/He.
-        
+    Abundance of element H/He.
+    
     metallicity: float
-        Metallicity (relative to solar, thus Z = 1 performs the calculation for solar abundances).
-        Note that the solar metal mass fraction for these tables is defined as Z = 1 - X - Y = 0.0129
-
+    Metallicity (relative to solar, thus Z = 1 performs the calculation for solar abundances).
+    Note that the solar metal mass fraction for these tables is defined as Z = 1 - X - Y = 0.0129
+    
     Returns
     -------
     
     Lambda: float / array
-        Net cooling rates, in (Lambda_net/n_H^2 [erg cm^3 s^-1])
-        
+    Net cooling rates, in (Lambda_net/n_H^2 [erg cm^3 s^-1])
+    
     """
-
+    
     table_name_z1, table_name_z2, dz = look_for_table_name(redshift)
     data1 = read_wiersma_cooling_table(table_name_z1)
     hhe_cool1 = data1['metal_free_net_cooling'] #He bins (7), temp bins (176), density bins (41)
     hhe_ne1 = data1['metal_free_electron_density'] #He bins (7), temp bins (176), density bins (41)
     metal_cool1 = data1['total_metals_net_cooling'] #temp bins (176), density bins (41)
     solar_ne_nh1 =  data1['solar_electron_density'] #temp bins (176), density bins (41)
-
+    
     data2 = read_wiersma_cooling_table(table_name_z2)
     hhe_cool2 = data2['metal_free_net_cooling']
     hhe_ne2 = data2['metal_free_electron_density']
     metal_cool2 = data2['total_metals_net_cooling']
     solar_ne_nh2 =  data2['solar_electron_density']
-
+    
     tbl_hhecool = hhe_cool1 * dz + hhe_cool2 * (1. - dz)
     tbl_hhene = hhe_ne1 * dz + hhe_ne2 * (1. - dz)
     tbl_solar_ne_nh = solar_ne_nh1 * dz + solar_ne_nh2 * (1. - dz)
     tbl_metalcool = metal_cool1 * dz + metal_cool2 * (1. - dz)
-
-    tbl_log_dens = data1['H_bins']
-    tbl_log_temperature = data1['Temp_bins']
-
+    
+    tbl_dens = data1['H_bins']
+    tbl_temperature = data1['Temp_bins']
+    
     metal_free_net_cool = np.zeros((41,176))
     metal_free_electron_density = np.zeros((41,176))
     x = data1['He_massfrac_bins']
@@ -120,20 +120,24 @@ def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0
             interpolation = interpolate.interp1d(x, y)
             metal_free_electron_density[i,j] = interpolation(He_frac)
 
-    f = interpolate.interp2d(tbl_log_temperature, tbl_log_dens, metal_free_net_cool, kind='cubic')
+    f = interpolate.interp2d(tbl_temperature, tbl_dens, metal_free_net_cool, kind='cubic')
     metal_free_Lambda = f(temperature, density)
 
-    f = interpolate.interp2d(tbl_log_temperature, tbl_log_dens, metal_free_electron_density, kind='cubic')
+    f = interpolate.interp2d(tbl_temperature, tbl_dens, metal_free_electron_density, kind='cubic')
     metal_free_ne = f(temperature, density)
 
-    f = interpolate.interp2d(tbl_log_temperature, tbl_log_dens, tbl_metalcool, kind='cubic')
-    metal_Lambda = f(temperature, density)
+    f = interpolate.interp2d(tbl_dens, tbl_temperature, tbl_metalcool, kind='cubic')
+    metal_Lambda = f(density, temperature)
 
-    f = interpolate.interp2d(tbl_log_temperature, tbl_log_dens, tbl_solar_ne_nh, kind='cubic')
-    metal_ne = f(temperature, density)
+    f = interpolate.interp2d(tbl_dens, tbl_temperature, tbl_solar_ne_nh, kind='cubic')
+    metal_ne = f(density, temperature)
 
     net_cool = metal_free_Lambda
     net_cool += (metal_free_ne/metal_ne) * metal_Lambda * metallicity
     return net_cool
+
+
+
+
 
 
