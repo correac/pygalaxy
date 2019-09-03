@@ -150,11 +150,11 @@ def rhocrit(z,Omega_m=0.307,h=0.6777,cgs=True):
         rho0 = 3*H0**2/(8.*np.pi*G) #Msun Mpc^-3
     return rho0 * (Omega_m*(1.0+z)**3+Omega_l)
 
-def M200accr(M200,z,cosmo='planck15',commah_flag=True):
+def M200accr(M200,z,cosmo='planck15',f_baryon=0.04825/0.307,commah_flag=True):
     """
     Function that calls the accretion routine from the COMMAH
     package, which calculates the accretion rate of a halo at any
-    redshift 'z', given the halo total mass 'Mi' at redshift 0.
+    redshift 'z', given the halo total mass 'Mi' at redshift z.
     
     Parameters
     ----------
@@ -180,8 +180,9 @@ def M200accr(M200,z,cosmo='planck15',commah_flag=True):
     Accretion rate [Msol/yr] at redshift 'z'.
     """
     if commah_flag:
-        commah_run = commah.run(cosmo, 0., 10**M200, z)
+        commah_run = commah.run(cosmo, z, 10**M200, z)
         output = commah_run['dMdt'].flatten()
+        output *= f_baryon
     else:
         x = M200-12.0
         if z<=4.0:
@@ -266,7 +267,7 @@ def Gamma_heat(M200,z,cosmo='planck15',f_baryon=0.04825/0.307):
     cte = k_b / (mu * mp) #(m/s)^2 K^-1
     cte *= (1e2)**2 #m->cm, (cm/s)^2 K^-1
     Gamma = (3./2.) * cte * Tvir(M200,z)  #(cm/s)^2
-    Gamma *= M200accr(M200,z,cosmo) * f_baryon #(cm/s)^2 Msun/yr
+    Gamma *= M200accr(M200,z,cosmo,f_baryon) #(cm/s)^2 Msun/yr
     Gamma *= Msun/yr_to_sec #erg/s
     Gamma *= ((2./3.)*fhot(M200,z) + fhotacc(M200,z))
     return Gamma
@@ -304,11 +305,11 @@ def Lambda(z, rho, T, metallicity, Xh=0.752, Xhe = 0.248):
     mp = 1.6726e-24     # proton mass: gr
     n_gas = rho/(mu * mp) # gas number density [cm^-3]
     n_H = n_gas*Xh # hydrogen number density
-    net_cool = compute_net_cooling_normal_opt(z, n_H, T, Xh, Xhe, metallicity) #Lambda/n_H^2 [erg cm^3 s^-1]
+    net_cool = compute_net_cooling_normal_opt(z, n_H, T, Xh, Xhe, metallicity) #return Lambda_net/n_H^2 [erg cm^3 s^-1]#
     net_cool *= n_H**2 #[erg cm^-3 s^-1]
     return net_cool
 
-def Gamma_cool(M200,z,f_baryon=0.04825/0.307,Thot=None,rho_hot=None,Zhot=None):
+def Gamma_cool(M200,z,Thot=1e6,rho_hot=1.0,Zhot=0.1):
     """
     Function that calculates the radiative cooling rate as defined in
     eq. (22) of Correa et al. (2018), MNRAS, 473, 1, 538.
@@ -346,9 +347,8 @@ def Gamma_cool(M200,z,f_baryon=0.04825/0.307,Thot=None,rho_hot=None,Zhot=None):
     This functions reads the cooling table from Wiersma et al. (2009).
     """
     Msun = 1.98847e33 #Msun->gr
-    if Thot==None: Thot=Tvir(M200,z) #hot gas temperature [K]
-    if rho_hot==None: rho_hot=10**0.6*rhocrit(z) #density of hot gas (cgs=True: gr/cm^3)
-    if Zhot==None: Zhot=0.1 #in units of solar metallicity
+    Thot = Tvir(M200,z) #hot gas temperature [K]
+    rho_hot = 10**0.6*rhocrit(z) #density of hot gas (cgs=True: gr/cm^3)
     Gamma = 10**Mhot(M200,z) * Msun #units gr
     Gamma *= Lambda(z, rho_hot, Thot, Zhot) #units gr erg cm^-3 s^-1
     Gamma /= rho_hot #units erg/s

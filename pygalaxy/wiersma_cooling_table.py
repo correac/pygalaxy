@@ -6,13 +6,6 @@ import os
 import hdf5
 from scipy import interpolate
 
-def read_option(option):
-    dir = './wiersma09_coolingtables/'+option+'_option_hdf5_files/'
-    for entry in os.listdir(dir):
-        if os.path.isfile(os.path.join(dir, entry)):
-            file = entry
-    return dir+file
-
 def look_for_table_name(redshift):
     dir = './wiersma09_coolingtables/normal_option_hdf5_files/'
     z = []
@@ -87,23 +80,11 @@ def interpolate_cooling_table(data_file, density, temperature, H, He, metallicit
     net_cool = metal_free_Lambda
     net_cool += (metal_free_ne/metal_ne) * metal_Lambda * metallicity
     
-    # Add Compton cooling off the CMB
-    STEFAN = 7.5657e-15 # erg cm^-3 K^-4
-    C_speed = 2.9979e10 # cm s^-1
-    ELECTRONMASS = 9.10953e-28 # g
-    THOMPSON = 6.6524587e-25 # cm^2
-    BOLTZMANN = 1.3806e-16 # erg K^-1
-    
-    #t_cmb = 2.728 * (1.0 + redshift)
-    #comp_add = -1. * (4.0 * STEFAN * THOMPSON * (t_cmb**4) / (ELECTRONMASS * C_speed))
-    #comp_add *= BOLTZMANN  * (t_cmb - 10**temperature) * metal_free_ne
-    #net_cool += comp_add
-    
     return net_cool
 
 def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0.752, He=0.248, metallicity=0.01):
     """This routine computes net cooling for a given metallicity (solar relative abundances).
-    
+        
     It calculates the net cooling rate (Lambda/n_H^2 [erg s^-1 cm^3]) given an array of redshifts, densities,
     temperatures, and abundances using the cooling tables prepared by Wiersma, Schaye, & Smith (2009).
     
@@ -140,9 +121,9 @@ def compute_net_cooling_normal_opt(redshift=0, density=0.1, temperature=1e5, H=0
     
     table_name_z1, table_name_z2, z_range = look_for_table_name(redshift)
     data1 = read_wiersma_cooling_table(table_name_z1)
-    net_cool1 = interpolate_cooling_table(data1,density, temperature, H, He, metallicity)
+    net_cool1 = interpolate_cooling_table(data1, density, temperature, H, He, metallicity)
     data2 = read_wiersma_cooling_table(table_name_z2)
-    net_cool2 = interpolate_cooling_table(data2,density, temperature, H, He, metallicity)
+    net_cool2 = interpolate_cooling_table(data2, density, temperature, H, He, metallicity)
     
     net_cool = np.array([net_cool1[0],net_cool2[0]])
     interpolation = interpolate.interp1d(z_range, net_cool)
