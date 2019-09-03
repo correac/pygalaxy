@@ -4,6 +4,7 @@
 import numpy as np
 import commah
 from wiersma_cooling_table import compute_net_cooling_normal_opt
+from scipy.optimize import fsolve
 
 def fhot(M200,z):
     """
@@ -353,5 +354,16 @@ def Gamma_cool(M200,z,f_baryon=0.04825/0.307,Thot=None,rho_hot=None,Zhot=None):
     Gamma /= rho_hot #units erg/s
     return Gamma
 
+def Mcrit(x,z):
+    f = Gamma_heat(x,z)-Gamma_cool(x,z)
+    return f
 
-
+def calculate_M_critical(z):
+    Mcritz = []
+    initial_quess = 12.0
+    for zi in z:
+        Mi = fsolve(Mcrit, initial_quess, args=(zi))
+        Mcritz = np.append(Mcritz,Mi)
+        initial_guess = Mi
+    
+    return Mcritz
