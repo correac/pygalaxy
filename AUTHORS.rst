@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Camila Correa (Leiden University)
+* Camila Correa (The University of Amsterdam)
 Contributors
 ------------
 

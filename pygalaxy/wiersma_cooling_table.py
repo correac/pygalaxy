@@ -3,11 +3,11 @@
 
 import numpy as np
 import os
-import hdf5
+import h5py
 from scipy import interpolate
 
 def look_for_table_name(redshift):
-    dir = './wiersma09_coolingtables/normal_option_hdf5_files/'
+    dir = '../wiersma09_coolingtables/normal_option_hdf5_files/'
     z = []
     file = []
     for entry in os.listdir(dir):

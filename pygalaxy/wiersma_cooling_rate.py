@@ -1,6 +1,5 @@
 #!/usr/bin/env ipython
 # -*- coding: utf-8 -*-
-
 import numpy as np
 import matplotlib.pyplot as pyplot
 from wiersma_cooling_table import compute_net_cooling_normal_opt
