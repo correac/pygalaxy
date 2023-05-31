@@ -2,3 +2,5 @@ matplotlib
 scipy
 numpy
 h5py
+swig
+commah

@@ -1,13 +1,10 @@
-#!/usr/bin/env ipython
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import os
 import h5py
 from scipy import interpolate
 
 def look_for_table_name(redshift):
-    dir = '../wiersma09_coolingtables/normal_option_hdf5_files/'
+    dir = './wiersma09_coolingtables/normal_option_hdf5_files/'
     z = []
     file = []
     for entry in os.listdir(dir):
@@ -78,7 +75,7 @@ def interpolate_cooling_table(data_file, density, temperature, H, He, metallicit
     metal_ne = f(density, temperature)
 
     net_cool = metal_free_Lambda
-    net_cool += (metal_free_ne/metal_ne) * metal_Lambda * metallicity
+    net_cool += (metal_free_ne/metal_ne.T) * metal_Lambda.T * metallicity
     
     return net_cool
 

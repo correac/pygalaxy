@@ -1,8 +1,8 @@
-#!/usr/bin/env ipython
-# -*- coding: utf-8 -*-
-
 import numpy as np
-import scipy.integrate as integrate
+from scipy.optimize import fsolve
+from hot_halo import Tvir, Mhot, Lambda, Gamma_heat, fhotacc, M200accr, rhocrit
+import warnings
+warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
 def density_model(r,M200,z):
     """
@@ -231,10 +231,16 @@ def cooling_radius(M200,z):
         Radius in units of R200, where heating rate equals cooling rate.
     """
     initial_guess = 0.5
-    rcool = fsolve(equaling_heating_cooling_rates, initial_guess, args=(M200,z))
+
+    rcool = np.zeros(len(M200))
+    for i in range(len(rcool)):
+        rcool[i] = fsolve(equaling_heating_cooling_rates, initial_guess, args=(M200[i],z))
+        print(rcool[i],M200[i],z)
+        if rcool[i] > 1.0: rcool[i] = 1.0  # Impose it to be R200 if larger ...
+
     return rcool
 
-def galaxy_gas_accretion(M200,z):
+def galaxy_gas_accretion(M200,z, rcool=None):
     """
     Function that calculates the rate of gas accretion inside galaxies.
     The equations follow the model of Correa et al. (2018b) MNRAS, 478, 1, 255.
@@ -258,8 +264,9 @@ def galaxy_gas_accretion(M200,z):
         by halos of mass M200 at redshift z.
     """
 
-    rcool = cooling_radius(M200,z) # in units of R200
-    if rcool>1.0:rcool=1.0
+    if rcool.all() == None:
+        rcool = cooling_radius(M200,z) # in units of R200
+
     epsilon = 0.3
     f_halo_acc_hot = fhotacc(M200,z)
     f_halo_acc_cold = 1.0-f_halo_acc_hot
