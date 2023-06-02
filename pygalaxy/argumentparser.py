@@ -53,9 +53,9 @@ class ArgumentParser(object):
         self.output_option = args.calculatemcrit
 
         print("Parsed arguments:")
-        print("---------------------\n")
         print(f"Redshift: {self.redshift}")
         print(f"Output directory: {self.output_directory}")
-        print(f"Output option: {self.output_option}")
+        print("---------------------")
+        #print(f"Output option: {self.output_option}")
         print("")
 

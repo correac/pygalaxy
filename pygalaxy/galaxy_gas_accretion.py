@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.optimize import fsolve
+from scipy.optimize import root_scalar
+import scipy.integrate as integrate
 from hot_halo import Tvir, Mhot, Lambda, Gamma_heat, fhotacc, M200accr, rhocrit
 import warnings
 warnings.filterwarnings('ignore', 'The iteration is not making good progress')
@@ -96,8 +98,21 @@ def density_profile_bestfit_to_EAGLE(r,M200,z):
     R200 = 10**M200 * Msun / (4. * np.pi * 200. * rhocrit(z) / 3.) #=R200^3 [cm^3]
     
     rho_norm = 10**Mhot(M200,z) * Msun / R200
-    rho_norm *= 0.15 #best-fit factor
+    cte = 0.15 + 0.425 * z #best-fit factor
+    rho_norm *= cte
     
+    # if z<= 2:
+    #     a = -1.9544 - 0.1095 * z
+    #     b = 1.993 - 0.6527 * z
+    #     c = -0.9814 + 0.4158 * z
+    # else:
+    #     a = -1.9544 - 0.1095 * 2.0
+    #     b = 1.993 - 0.6527 * 2.0
+    #     c = -0.9814 + 0.4158 * 2.0
+    # slope = a + b * (M200 - 12.0) + c * (M200 - 12.0)**2.
+    # rho_hot_gas = rho_norm * r**slope
+    # rho_hot_gas *= 0.1  # best-fit factor
+
     # No need to integrate here
     # rho_norm = 10**M200 * Msun * f_baryon / R200
     # norm = integrate.quad(integral, 1e-3, 1., args=(M200,z))[0]
@@ -135,6 +150,15 @@ def density_profile_isothermal(r,M200,z):
     rho_hot_gas = rho_norm / r**2  #r in units of R200, rho [gr/cm^3]
     return rho_hot_gas
 
+def bestfit_density_profile(r,M200,z):
+    function = lambda x, a, b, c: a + b*x + c*x**2
+    M = M200-12.0
+    r_log = np.log10(r)
+    param_1 = function(M,0.39803196,  0.60571128, -0.18129327)
+    param_2 = function(M,-0.7121132,  -0.73234814, -0.29752469)
+    param_3 = function(M,0.72308926, -1.42355479,  0.09960688)
+    rho = function(r_log,param_1,param_2,param_3) #np.log10(rho/rhocrit(z))
+    return rho
 
 def Gamma_cool_with_radial_dependence(r,M200,z,Thot=1e6,Zhot=0.1):
     """
@@ -175,8 +199,10 @@ def Gamma_cool_with_radial_dependence(r,M200,z,Thot=1e6,Zhot=0.1):
     Msun = 1.98847e33 #Msun->gr
     Thot = Tvir(M200,z) #hot gas temperature [K]
     rho_hot = density_profile_bestfit_to_EAGLE(r,M200,z)[0] #density of hot gas (gr/cm^3)
-    #rho_hot = density_profile_isothermal(r,M200,z)[0]
-    
+    # rho_hot = density_profile_isothermal(r,M200,z)[0]
+    # log_rho_hot = bestfit_density_profile(r,M200,z)[0] #np.log10(rho/rho_crit)
+    # rho_hot = rhocrit(z) * 10**log_rho_hot
+
     Gamma = 10**Mhot(M200,z) * Msun #units gr
     Gamma *= Lambda(z, rho_hot, Thot, Zhot) #units gr erg cm^-3 s^-1
     Gamma /= rho_hot #units erg/s
@@ -230,14 +256,22 @@ def cooling_radius(M200,z):
     rcool : float / array
         Radius in units of R200, where heating rate equals cooling rate.
     """
+
+    print("Calculating cooling radius..")
+    print("rcool/R200, M200[log10Msun]:")
+
     initial_guess = 0.5
 
     rcool = np.zeros(len(M200))
     for i in range(len(rcool)):
+
+        # result = root_scalar(equaling_heating_cooling_rates, bracket=[1e-3,10], method='bisect', args=(M200[i],z))
+        # rcool[i] = result.root
         rcool[i] = fsolve(equaling_heating_cooling_rates, initial_guess, args=(M200[i],z))
-        print(rcool[i],M200[i],z)
+        print("{0:0.2f}".format(rcool[i]) + ", {0:0.2f}".format(M200[i]))
         if rcool[i] > 1.0: rcool[i] = 1.0  # Impose it to be R200 if larger ...
 
+    print("done.")
     return rcool
 
 def galaxy_gas_accretion(M200,z, rcool=None):

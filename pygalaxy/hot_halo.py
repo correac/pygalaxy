@@ -75,7 +75,7 @@ def fhotacc(M200,z):
     Function that returns the fraction of gas accreted hot as a function of
     halo mass (M200) and redshift. This function follows eqs. (11-15) of Correa
     et al. (2018), MNRAS, 473, 1, 538.
-    Gas is defined to be accreted hot if inmidiately after crossing the virial
+    Gas is defined to be accreted hot if immediately after crossing the virial
     radius the gas temperature is larger than 10^5.5 K. This function is a b
     est-fitting expression of hot gas accretion in halos from the EAGLE simulations.
     
@@ -100,7 +100,7 @@ def fhotacc(M200,z):
     if (z>2.0)&(z<=4.0):
         M_half=-0.25+0.53*z-0.07*z**2
         alpha = -0.46*10**(0.81*z_tilde-0.42*z_tilde**2)
-    if z>=4:
+    if z>4:
         M_half = 0.72+0.01*z
         alpha = -1.07
     M_half += 12.0
