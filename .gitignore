@@ -10,7 +10,6 @@ dist/*
 
 # Plot outputs, just in case
 *.pdf
-*.png
 *.mp4
 *.hdf5
 index.html
