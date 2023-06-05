@@ -3,7 +3,7 @@ pygalaxy
 
 [pygalaxy](https://github.com/correac/pygalaxy) is an analytic formalism
 based on Correa et al. (2018a,b) to calculate the best fitting expression
-of hot halo gas heating & cooling rates, gas mass histories, hot gas fractions.
+of hot halo gas heating & cooling rates, gas mass histories, hot gas fractions and cooling radius.
 
 
 Note that pygalaxy assumes halo virial mass (M200) is 200 times critical overdensity, and
@@ -62,6 +62,10 @@ For example:
  python3 pygalaxy.py -z 0.0 -o /user/home/output/
 ```
 
+Acknowledgement
+--------------
+
+We kindly ask users publishing scientific results using `pygalaxy` to cite [Correa et al. (2018a)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.473..538C/abstract) and [Correa et al. (2018b)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.478..255C/abstract).
 
 
 ### Support and Contact
