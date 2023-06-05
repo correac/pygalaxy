@@ -225,7 +225,6 @@ def Tvir(M200,z):
     R200 = R200**(1./3.) #Virial radius
     Vc2 = 10**M200 * Msun * G / R200 #Maximum circular velocity: Vc2 = Vc^2(R200.)
     T = mu * mp * Vc2 / (2. * k_b)
-    #T = 10**5.3 * (10**(M200-12.0))**(2./3.) * (1.+z)
     return T
 
 def Gamma_heat(M200,z,cosmo='planck15',f_baryon=0.04825/0.307):

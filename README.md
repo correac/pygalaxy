@@ -49,11 +49,20 @@ How to use it
 -------------
 
 To run the script type
-```bash
+```
+ cd pygalaxy
+
  python3 pygalaxy.py -z input_redshift \
-                     --calculate-mcrit yes \
                      -o path_to_output_directory 
 ```
+
+For example:
+
+```
+ python3 pygalaxy.py -z 0.0 -o /user/home/output/
+```
+
+
 
 ### Support and Contact
 

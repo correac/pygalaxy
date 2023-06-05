@@ -5,7 +5,7 @@ build/*
 dist/*
 
 # Python compiled files
-*__pycache__*
+*/*__pycache__*
 *.idea/
 
 # Plot outputs, just in case
